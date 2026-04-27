@@ -1,0 +1,9 @@
+{
+  "name": "general-geo-plugin",
+  "owner": { "name": "kae-creative-apps" },
+  "plugins": [{
+    "name": "geo",
+    "description": "GEO and AEO monitoring, auditing, and optimization for any brand",
+    "source": { "source": "url", "url": "https://github.com/kae-creative-apps/general-geo-plugin.git" }
+  }]
+}

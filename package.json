@@ -1,0 +1,12 @@
+{
+  "name": "general-geo-plugin",
+  "version": "1.0.0",
+  "description": "GEO and AEO monitoring, auditing, and optimization for any brand",
+  "author": "kae-creative-apps",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kae-creative-apps/general-geo-plugin.git"
+  },
+  "keywords": ["geo", "aeo", "seo", "marketing", "ai-visibility", "claude-plugin"]
+}
