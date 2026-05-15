@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>geo — know your Share of Model</title>
+  <meta name="description" content="A Claude Code plugin that measures how often AI recommends your brand — then tells you exactly what to do about it.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:      #1A1310;
+      --bark:     #3A2D24;
+      --espresso: #4D3D33;
+      --coffee:   #5C4838;
+      --mocha:    #6E5746;
+      --latte:    #A28A77;
+      --taupe:    #C2AE9A;
+      --cream:    #E8DFD2;
+      --bone:     #F0EBE5;
+      --paper:    #F5F0E8;
+      --offwhite: #FAF6F0;
+      --wine:     #7B1F23;
+      --merlot:   #5C1818;
+
+      --font-display: 'Italiana', Georgia, serif;
+      --font-serif:   'Cormorant Garamond', Georgia, serif;
+      --font-sans:    'DM Sans', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+
+      --shadow-sm:    0 1px 4px rgba(58, 45, 36, 0.07), 0 2px 8px rgba(58, 45, 36, 0.05);
+      --shadow-md:    0 2px 12px rgba(58, 45, 36, 0.1), 0 4px 24px rgba(58, 45, 36, 0.07);
+      --shadow-print: 5px 8px 32px rgba(58, 45, 36, 0.22), 1px 2px 8px rgba(58, 45, 36, 0.12);
+
+      --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --dur-q:  160ms;
+      --dur-b:  280ms;
+      --dur-s:  520ms;
+
+      --pad: 60px;
+    }
+
+    ::selection { background: var(--wine); color: var(--bone); }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bone);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 var(--pad);
+    }
+
+    /* ── NAV ── */
+    nav {
+      padding: 22px 0;
+      border-bottom: 1px solid rgba(26, 19, 16, 0.1);
+      position: sticky;
+      top: 0;
+      background: rgba(240, 235, 229, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      z-index: 100;
+    }
+
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
+
+    .nav-id {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-decoration: none;
+    }
+
+    .nav-product {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      line-height: 1;
+    }
+
+    .nav-by {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--latte);
+    }
+
+    .nav-cta {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-decoration: none;
+      padding: 9px 22px;
+      border: 1px solid rgba(26, 19, 16, 0.28);
+      border-radius: 999px;
+      transition: background var(--dur-q) var(--ease-out), color var(--dur-q) var(--ease-out), border-color var(--dur-q) var(--ease-out);
+    }
+
+    .nav-cta:hover {
+      background: var(--ink);
+      color: var(--bone);
+      border-color: var(--ink);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      padding: 88px 0 104px;
+      border-bottom: 1px solid rgba(26, 19, 16, 0.1);
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 72px;
+      align-items: start;
+    }
+
+    .eyebrow {
+      font-family: var(--font-sans);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--latte);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--wine);
+      flex-shrink: 0;
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(68px, 7.5vw, 108px);
+      line-height: 0.96;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+      margin-bottom: 30px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--wine);
+    }
+
+    .hero-lead {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 19px;
+      line-height: 1.7;
+      color: var(--bark);
+      max-width: 540px;
+      margin-bottom: 48px;
+    }
+
+    .install-label {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--latte);
+      margin-bottom: 10px;
+    }
+
+    .code-stack { display: flex; flex-direction: column; gap: 5px; }
+
+    .code-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--paper);
+      border: 1px solid rgba(26, 19, 16, 0.1);
+      padding: 10px 14px;
+      transition: border-color var(--dur-q) var(--ease-out);
+    }
+
+    .code-line:hover { border-color: rgba(26, 19, 16, 0.24); }
+
+    .code-line code {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--bark);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .code-line code::before { content: '$ '; color: var(--taupe); }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px;
+      color: var(--taupe);
+      flex-shrink: 0;
+      transition: color var(--dur-q) var(--ease-out);
+      display: flex;
+    }
+
+    .copy-btn:hover { color: var(--ink); }
+    .copy-btn.copied { color: var(--wine); }
+
+    .hero-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: var(--latte);
+    }
+
+    .chip {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--cream);
+      border: 1px solid rgba(26, 19, 16, 0.1);
+      padding: 1px 6px;
+    }
+
+    /* Hero card — pinned print treatment */
+    .hero-card {
+      background: var(--cream);
+      border: 1px solid rgba(26, 19, 16, 0.08);
+      padding: 36px 32px 28px;
+      box-shadow: var(--shadow-print);
+      transform: rotate(-2deg) translateY(16px);
+      transform-origin: center top;
+      transition: transform var(--dur-s) var(--ease-out), box-shadow var(--dur-s) var(--ease-out);
+      position: sticky;
+      top: 108px;
+    }
+
+    .hero-card:hover {
+      transform: rotate(0deg) translateY(0);
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--latte);
+      margin-bottom: 20px;
+    }
+
+    .card-score {
+      font-family: var(--font-display);
+      font-size: 80px;
+      line-height: 0.9;
+      color: var(--ink);
+      letter-spacing: -0.015em;
+      margin-bottom: 6px;
+    }
+
+    .card-score-label {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      color: var(--latte);
+      margin-bottom: 24px;
+    }
+
+    .card-divider {
+      height: 1px;
+      background: rgba(26, 19, 16, 0.1);
+      margin-bottom: 16px;
+    }
+
+    .card-engine-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(26, 19, 16, 0.07);
+    }
+
+    .card-engine-row:last-of-type { border-bottom: none; }
+
+    .engine-name {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--bark);
+    }
+
+    .engine-score {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink);
+    }
+
+    .engine-score.lead { color: var(--wine); }
+
+    .card-caption {
+      margin-top: 20px;
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 12px;
+      color: var(--latte);
+      line-height: 1.55;
+      border-top: 1px solid rgba(26, 19, 16, 0.08);
+      padding-top: 16px;
+    }
+
+    /* ── LOOP SECTION ── */
+    .loop-section {
+      padding: 112px 0 96px;
+      border-bottom: 1px solid rgba(26, 19, 16, 0.1);
+    }
+
+    .loop-intro {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 48px;
+      align-items: end;
+      margin-bottom: 72px;
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(40px, 5vw, 62px);
+      line-height: 1.0;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+    }
+
+    h2 em { font-style: italic; color: var(--wine); }
+
+    .aside-note {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--latte);
+    }
+
+    /* Loop step rows — full-bleed on hover */
+    .loop-steps {
+      margin: 0 calc(-1 * var(--pad));
+    }
+
+    .loop-step {
+      padding: 40px var(--pad);
+      border-top: 1px solid rgba(26, 19, 16, 0.1);
+      display: grid;
+      grid-template-columns: 110px 240px 1fr auto;
+      gap: 0 52px;
+      align-items: start;
+      transition: background var(--dur-b) var(--ease-out);
+      cursor: default;
+    }
+
+    .loop-step:last-child {
+      border-bottom: 1px solid rgba(26, 19, 16, 0.1);
+    }
+
+    .loop-step:hover { background: var(--paper); }
+
+    .step-num {
+      font-family: var(--font-display);
+      font-size: 96px;
+      line-height: 0.88;
+      color: rgba(26, 19, 16, 0.08);
+      letter-spacing: -0.02em;
+      transition: color var(--dur-b) var(--ease-out);
+    }
+
+    .loop-step:hover .step-num { color: var(--wine); }
+
+    .step-head { }
+
+    .step-verb {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--latte);
+      margin-bottom: 6px;
+    }
+
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 28px;
+      line-height: 1.05;
+      letter-spacing: -0.012em;
+      color: var(--ink);
+    }
+
+    .step-desc {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--bark);
+      padding-top: 2px;
+    }
+
+    .step-cmd {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--ink);
+      background: var(--cream);
+      border: 1px solid rgba(26, 19, 16, 0.1);
+      padding: 5px 11px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+      align-self: start;
+    }
+
+    /* ── OUTPUTS — dark espresso ── */
+    .outputs-section {
+      background: var(--espresso);
+      padding: 112px 0;
+      border-bottom: 1px solid rgba(240, 235, 229, 0.08);
+    }
+
+    .outputs-section .eyebrow { color: var(--taupe); }
+    .outputs-section .eyebrow::before { background: var(--taupe); opacity: 0.5; }
+    .outputs-section h2 { color: var(--bone); margin-bottom: 16px; }
+    .outputs-section h2 em { color: var(--taupe); }
+
+    .outputs-lead {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--taupe);
+      line-height: 1.65;
+      max-width: 480px;
+      margin-bottom: 64px;
+    }
+
+    .outputs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: rgba(240, 235, 229, 0.1);
+      border: 1px solid rgba(240, 235, 229, 0.1);
+    }
+
+    .output-card {
+      background: var(--espresso);
+      padding: 44px 36px;
+      transition: background var(--dur-b) var(--ease-out);
+    }
+
+    .output-card:hover { background: var(--coffee); }
+
+    .output-idx {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin-bottom: 32px;
+    }
+
+    .output-title {
+      font-family: var(--font-display);
+      font-size: 26px;
+      letter-spacing: -0.012em;
+      line-height: 1.1;
+      color: var(--bone);
+      margin-bottom: 14px;
+    }
+
+    .output-desc {
+      font-size: 14px;
+      color: var(--taupe);
+      line-height: 1.65;
+    }
+
+    /* ── COMMANDS ── */
+    .commands-section {
+      padding: 112px 0;
+      border-bottom: 1px solid rgba(26, 19, 16, 0.1);
+    }
+
+    .commands-intro { margin-bottom: 64px; }
+
+    .cmd-table {
+      margin: 0 calc(-1 * var(--pad));
+    }
+
+    .cmd-row {
+      padding: 20px var(--pad);
+      border-top: 1px solid rgba(26, 19, 16, 0.08);
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 80px;
+      align-items: baseline;
+      transition: background var(--dur-q) var(--ease-out);
+    }
+
+    .cmd-row:last-child { border-bottom: 1px solid rgba(26, 19, 16, 0.08); }
+    .cmd-row:hover { background: var(--paper); }
+
+    .cmd-name {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--wine);
+    }
+
+    .cmd-desc {
+      font-size: 14px;
+      color: var(--bark);
+      line-height: 1.55;
+    }
+
+    /* ── INSTALL CTA ── */
+    .install-section {
+      background: var(--espresso);
+      padding: 112px 0;
+    }
+
+    .install-inner { max-width: 600px; }
+
+    .install-section .eyebrow { color: var(--taupe); }
+    .install-section .eyebrow::before { background: var(--taupe); opacity: 0.5; }
+    .install-section h2 { color: var(--bone); margin-bottom: 20px; }
+
+    .install-lead {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 18px;
+      color: var(--taupe);
+      line-height: 1.65;
+      margin-bottom: 48px;
+    }
+
+    .install-steps { display: flex; flex-direction: column; gap: 5px; }
+
+    .install-step-eyebrow {
+      font-family: var(--font-sans);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--taupe);
+      margin: 14px 0 5px;
+    }
+
+    .install-step-eyebrow:first-child { margin-top: 0; }
+
+    /* Dark code line variant */
+    .dark .code-line {
+      background: var(--bark);
+      border-color: rgba(240, 235, 229, 0.1);
+    }
+
+    .dark .code-line code { color: var(--bone); }
+    .dark .code-line code .p { color: var(--taupe); }
+    .dark .copy-btn { color: var(--taupe); }
+    .dark .copy-btn:hover { color: var(--bone); }
+
+    .then-line {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 10px 0;
+    }
+
+    .then-line span {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 13px;
+      color: var(--taupe);
+    }
+
+    .then-line::before,
+    .then-line::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(240, 235, 229, 0.12);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(26, 19, 16, 0.1);
+      padding: 28px 0;
+    }
+
+    .footer-inner {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .footer-wordmark {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--ink);
+    }
+
+    .footer-by {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      color: var(--latte);
+      margin-left: 8px;
+    }
+
+    .footer-link {
+      font-size: 12px;
+      color: var(--latte);
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: color var(--dur-q) var(--ease-out), opacity var(--dur-q) var(--ease-out);
+    }
+
+    .footer-link:hover { color: var(--ink); opacity: 0.65; }
+
+    /* ── SCROLL ANIMATIONS ── */
+
+    /* Hero — animates on load via keyframe */
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-anim {
+      opacity: 0;
+      animation: heroIn var(--dur-s) var(--ease-out) both;
+    }
+
+    .ha-1 { animation-delay: 40ms; }
+    .ha-2 { animation-delay: 140ms; }
+    .ha-3 { animation-delay: 240ms; }
+    .ha-4 { animation-delay: 340ms; }
+    .ha-5 { animation-delay: 420ms; }
+
+    /* Hero card — floats in from right/top */
+    @keyframes cardIn {
+      from { opacity: 0; transform: rotate(-4deg) translateY(32px); }
+      to   { opacity: 1; transform: rotate(-2deg) translateY(16px); }
+    }
+
+    .hero-card {
+      opacity: 0;
+      animation: cardIn 0.7s 0.3s var(--ease-out) both;
+    }
+
+    /* Scroll reveals */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity var(--dur-s) var(--ease-out),
+                  transform var(--dur-s) var(--ease-out);
+    }
+
+    .reveal.in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Eyebrow slides from left */
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-16px);
+      transition: opacity var(--dur-s) var(--ease-out),
+                  transform var(--dur-s) var(--ease-out);
+    }
+
+    .reveal-left.in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Step number pops */
+    .reveal-num {
+      opacity: 0;
+      transform: scale(0.88) translateY(12px);
+      transition: opacity 0.6s var(--ease-out),
+                  transform 0.6s var(--ease-out);
+      transform-origin: left center;
+    }
+
+    .reveal-num.in {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* Stagger delays */
+    .d1 { transition-delay:   0ms; }
+    .d2 { transition-delay:  80ms; }
+    .d3 { transition-delay: 160ms; }
+    .d4 { transition-delay: 240ms; }
+    .d5 { transition-delay: 320ms; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      :root { --pad: 28px; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-card { display: none; }
+      .loop-intro { grid-template-columns: 1fr; gap: 24px; }
+      .aside-note { display: none; }
+      .loop-step {
+        grid-template-columns: 64px 1fr;
+        grid-template-rows: auto auto;
+        gap: 16px 24px;
+      }
+      .step-num { font-size: 56px; }
+      .step-desc { grid-column: 2; }
+      .step-cmd { grid-column: 2; grid-row: 3; }
+      .outputs-grid { grid-template-columns: 1fr; }
+      .cmd-row { grid-template-columns: 1fr; gap: 6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="wrap">
+      <div class="nav-inner">
+        <a href="#" class="nav-id">
+          <span class="nav-product">geo.</span>
+          <span class="nav-by">by kae &amp; rae creative</span>
+        </a>
+        <a href="#install" class="nav-cta">Get started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+
+        <div>
+          <div class="eyebrow hero-anim ha-1">Share of Model &nbsp;·&nbsp; GEO &amp; AEO monitoring</div>
+
+          <h1 class="hero-anim ha-2">Is AI<br>recommending<br>your <em>brand?</em></h1>
+
+          <p class="hero-lead hero-anim ha-3">We built this because we couldn't find it anywhere else. A Claude Code plugin that answers one question — every month — and tells you exactly what to do about it.</p>
+
+          <div class="hero-anim ha-4">
+            <div class="install-label">Install — 2 commands</div>
+            <div class="code-stack">
+              <div class="code-line">
+                <code>claude config add plugin-source https://github.com/kae-creative-apps/general-geo-plugin</code>
+                <button class="copy-btn" onclick="copy(this,'claude config add plugin-source https://github.com/kae-creative-apps/general-geo-plugin')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+              <div class="code-line">
+                <code>claude /install-plugin geo</code>
+                <button class="copy-btn" onclick="copy(this,'claude /install-plugin geo')">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p class="hero-note hero-anim ha-5">Then run <span class="chip">/geo-setup</span> — a 5-minute guided onboarding.</p>
+        </div>
+
+        <!-- Pinned metric card -->
+        <div class="hero-card">
+          <div class="card-eyebrow">Share of Model &nbsp;·&nbsp; May 2025</div>
+          <div class="card-score">43%</div>
+          <div class="card-score-label">Overall weighted score</div>
+          <div class="card-divider"></div>
+          <div class="card-engine-row">
+            <span class="engine-name">ChatGPT</span>
+            <span class="engine-score lead">51%</span>
+          </div>
+          <div class="card-engine-row">
+            <span class="engine-name">Perplexity</span>
+            <span class="engine-score">30%</span>
+          </div>
+          <div class="card-engine-row">
+            <span class="engine-name">Gemini</span>
+            <span class="engine-score">25%</span>
+          </div>
+          <p class="card-caption">Your brand was cited in 15 of 30 queries — up 8 points from April.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSED LOOP -->
+  <section class="loop-section">
+    <div class="wrap">
+      <div class="loop-intro">
+        <div>
+          <div class="eyebrow reveal reveal-left d1">The closed loop</div>
+          <h2 class="reveal d2">Four steps.<br>Once a <em>month.</em></h2>
+        </div>
+        <p class="aside-note reveal d3">Run these in order. You'll always know where you stand — and what to fix next.</p>
+      </div>
+    </div>
+
+    <div class="loop-steps">
+      <div class="loop-step">
+        <div class="step-num reveal-num">01</div>
+        <div class="step-head reveal d1">
+          <div class="step-verb">Audit</div>
+          <div class="step-title">Your pages</div>
+        </div>
+        <div class="step-desc reveal d2">Score your top and bottom pages against 10 AI-readiness criteria. See which ones need work and why — ranked by priority. Bring a Search Console CSV and the results are weighted by real traffic.</div>
+        <div class="step-cmd reveal d3">/geo-site-audit</div>
+      </div>
+
+      <div class="loop-step">
+        <div class="step-num reveal-num">02</div>
+        <div class="step-head reveal d1">
+          <div class="step-verb">Fix</div>
+          <div class="step-title">Flagged pages</div>
+        </div>
+        <div class="step-desc reveal d2">Give it a URL from the audit. It rewrites or restructures the page so AI engines are more likely to cite it as a source. Fix reports save to Google Drive if you've set that up.</div>
+        <div class="step-cmd reveal d3">/geo-fix [url]</div>
+      </div>
+
+      <div class="loop-step">
+        <div class="step-num reveal-num">03</div>
+        <div class="step-head reveal d1">
+          <div class="step-verb">Measure</div>
+          <div class="step-title">Share of Model</div>
+        </div>
+        <div class="step-desc reveal d2">Runs your 10 anchor questions through ChatGPT, Perplexity, and Gemini — live, in your browser. Same questions every month, so the trend actually means something. Takes about 10–15 minutes.</div>
+        <div class="step-cmd reveal d3">/geo-check &nbsp;·&nbsp; /geo-gaps</div>
+      </div>
+
+      <div class="loop-step">
+        <div class="step-num reveal-num">04</div>
+        <div class="step-head reveal d1">
+          <div class="step-verb">Create</div>
+          <div class="step-title">Content for gaps</div>
+        </div>
+        <div class="step-desc reveal d2">Takes any topic AI is answering without citing you. Turns it into a full content brief, optimized for citation from the first sentence. Hand it to any writer — they can run with it immediately.</div>
+        <div class="step-cmd reveal d3">/geo-brief [topic]</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT YOU GET -->
+  <section class="outputs-section">
+    <div class="wrap">
+      <div class="eyebrow reveal reveal-left d1">What you get</div>
+      <h2 class="reveal d2">Everything lands in<br><em>Google Sheets.</em></h2>
+      <p class="outputs-lead reveal d3">No new dashboard. No new tool. Results go where your team already works.</p>
+
+      <div class="outputs-grid">
+        <div class="output-card reveal d1">
+          <div class="output-idx">01 &nbsp;·&nbsp; Monthly</div>
+          <div class="output-title">Share of Model score</div>
+          <p class="output-desc">A percentage showing how often AI recommends your brand across ChatGPT, Perplexity, and Gemini — weighted by their actual market share. Tracked month over month so you see movement, not just a number.</p>
+        </div>
+        <div class="output-card reveal d2">
+          <div class="output-idx">02 &nbsp;·&nbsp; Per audit</div>
+          <div class="output-title">Page-level audit scores</div>
+          <p class="output-desc">Every audited page scored against 10 AI-readiness criteria with a priority ranking — High, Medium, or Low. You know exactly where to spend time this month.</p>
+        </div>
+        <div class="output-card reveal d3">
+          <div class="output-idx">03 &nbsp;·&nbsp; Per gap</div>
+          <div class="output-title">Content gap briefs</div>
+          <p class="output-desc">Topics AI is answering in your space without citing you. Each becomes a ready-to-use brief, built for citation from sentence one. Writer-ready.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMMANDS -->
+  <section class="commands-section">
+    <div class="wrap commands-intro">
+      <div class="eyebrow reveal reveal-left d1">All commands</div>
+      <h2 class="reveal d2">Eight skills.<br>One plugin.</h2>
+    </div>
+
+    <div class="cmd-table">
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-setup</div>
+        <div class="cmd-desc">First-time onboarding. Configures your brand, connects Google Sheets, and picks your 10 monthly anchor questions. About 5 minutes.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-site-audit</div>
+        <div class="cmd-desc">Audits your top and bottom pages for AI readiness. Drop in a Search Console CSV and results are weighted by actual traffic.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-fix [url]</div>
+        <div class="cmd-desc">Takes a specific URL and rewrites or restructures it for AI citation. Saves a fix report to Google Drive if you've configured it.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-check</div>
+        <div class="cmd-desc">Runs your anchor questions through ChatGPT, Perplexity, and Gemini live. Measures Share of Model per engine. Plan on 10–15 minutes.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-gaps</div>
+        <div class="cmd-desc">Finds questions AI is answering in your domain where your brand isn't showing up. Your highest-leverage content opportunities.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-brief [topic]</div>
+        <div class="cmd-desc">Generates a full content brief for a gap topic, built for AI citation. Ready to hand to any writer, immediately.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-facts</div>
+        <div class="cmd-desc">Builds a Fast Facts page to prevent AI from citing wrong information about your pricing, data, or positioning.</div>
+      </div>
+      <div class="cmd-row reveal">
+        <div class="cmd-name">/geo-report</div>
+        <div class="cmd-desc">Writes a monthly performance summary to your brand sheet. Run this last — after the full loop — to close out the month.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL CTA -->
+  <section class="install-section" id="install">
+    <div class="wrap">
+      <div class="install-inner">
+        <div class="eyebrow reveal reveal-left d1">Get started</div>
+        <h2 class="reveal d2">Two commands.<br>Five minutes to first data.</h2>
+        <p class="install-lead reveal d3">Requires the Claude Code CLI. Works with any brand, any industry. No backend, no database — results go straight to Google Sheets.</p>
+
+        <div class="install-steps dark reveal d4">
+          <div class="install-step-eyebrow">Step 1 — Add the plugin source</div>
+          <div class="code-line">
+            <code>claude config add plugin-source https://github.com/kae-creative-apps/general-geo-plugin</code>
+            <button class="copy-btn" onclick="copy(this,'claude config add plugin-source https://github.com/kae-creative-apps/general-geo-plugin')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+
+          <div class="install-step-eyebrow">Step 2 — Install</div>
+          <div class="code-line">
+            <code>claude /install-plugin geo</code>
+            <button class="copy-btn" onclick="copy(this,'claude /install-plugin geo')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+
+          <div class="then-line"><span>then</span></div>
+
+          <div class="install-step-eyebrow">Step 3 — Run setup</div>
+          <div class="code-line">
+            <code>/geo-setup</code>
+            <button class="copy-btn" onclick="copy(this,'/geo-setup')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="footer-inner">
+        <div>
+          <span class="footer-wordmark">geo.</span>
+          <span class="footer-by">by kae &amp; rae creative &nbsp;·&nbsp; Denver</span>
+        </div>
+        <a href="https://github.com/kae-creative-apps/general-geo-plugin" class="footer-link">View on GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Scroll reveals ──
+    const observer = new IntersectionObserver((entries) => {
+      // Group entries that appear together and stagger them
+      const appearing = entries.filter(e => e.isIntersecting);
+
+      // Find all siblings in the same parent that are also appearing
+      appearing.forEach((entry, i) => {
+        const el = entry.target;
+        // Find position among all reveal siblings in the same parent
+        const siblings = [...el.parentElement.querySelectorAll('.reveal, .reveal-left, .reveal-num')];
+        const idx = siblings.indexOf(el);
+
+        setTimeout(() => {
+          el.classList.add('in');
+          observer.unobserve(el);
+        }, idx * 70);
+      });
+    }, {
+      threshold: 0.08,
+      rootMargin: '0px 0px -32px 0px'
+    });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-num').forEach(el => {
+      observer.observe(el);
+    });
+
+    // ── Copy ──
+    function copy(btn, text) {
+      navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = orig;
+        }, 2000);
+      });
+    }
+  </script>
+
+</body>
+</html>
