@@ -6,9 +6,11 @@ teams — no technical knowledge required.
 
 ## Installation
 
-```bash
-claude config add plugin-source https://github.com/kae-creative-apps/general-geo-plugin
-claude /install-plugin geo
+Inside Claude Code, run:
+
+```
+/plugin marketplace add kae-creative-apps/general-geo-plugin
+/plugin install geo@kae-creative-apps
 ```
 
 ## First Use
